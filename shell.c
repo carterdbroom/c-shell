@@ -34,7 +34,7 @@ int main(void) {
         /* add the latest command call to history */
         latest_command:
         /* End the program when the user types exit */
-        if (!strcmp("exit()", arguments_pointer)) {
+        if (!strcmp("exit", arguments_pointer)) {
             should_run = 0;
             continue;
         } 
