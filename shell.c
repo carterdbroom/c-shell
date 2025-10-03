@@ -24,7 +24,7 @@ int main(void) {
         /* read input, break if fgets fails */
         if (!fgets(arguments, MAX_LINE, stdin)) {
             printf("Failed reading input");
-            break;
+            return -1;
         } 
 
         arguments[strcspn(arguments, "\n")] = 0; /* gets rid of newline character */
@@ -32,13 +32,13 @@ int main(void) {
         char *arguments_pointer = arguments;
         
         /* add the latest command call to history */
-        //printf("%s\n", arguments_pointer);
         latest_command:
         /* End the program when the user types exit */
         if (!strcmp("exit()", arguments_pointer)) {
             should_run = 0;
             continue;
         } 
+        /* Print out history when user types history*/
         else if(!strcmp("history", arguments_pointer)) {
             if (!history[0]) {
                 printf("No commands in history.\n");
@@ -50,17 +50,20 @@ int main(void) {
                 }
             }
         }
+        /* Execute the last command when user types !! */
         else if (!strcmp("!!", arguments_pointer)) {
             if (history[0]) {
                 arguments_pointer = history[0]; /* our argument is now the last command executed */
-                goto latest_command;
+                goto latest_command; /* jump back to the start*/
             } 
             else {
                 printf("No commands in history.\n");
                 continue;
             }
         }
+        /* For any other command execute the following code */
         else {
+
             pid_t pid = fork();
 
             /* Child process */
@@ -73,11 +76,11 @@ int main(void) {
                 /* Execute the command in */
                 execvp(args_array[0], args_array);
                 
-                /* This only executes if execvp fails*/
+                /* This only executes if execvp fails */
                 printf("Not a valid command\n");
                 exit(1);
             } 
-            /* Parent process. */
+            /* Parent process */
             else {
                 wait(NULL);
                 add_new_arg_to_history(arguments_pointer); 
@@ -86,7 +89,7 @@ int main(void) {
         }
     }
 
-    /* Freeing any memory that is being held in the history array. */
+    /* Freeing any memory that is being held in the history array */
     for (int i = 0; i < 5; i++) {
         if (history[i]) {
             free(history[i]);
@@ -96,6 +99,7 @@ int main(void) {
     return 0;
 }
 
+/* Adds a new argument to the history array by shifting all elements over */
 void add_new_arg_to_history(char *arg) {
     /* We don't want to have the history or !! command in the history */
     if (!strcmp("history", arg) || !strcmp("!!", arg)) {
@@ -118,16 +122,17 @@ void add_new_arg_to_history(char *arg) {
 /* Adds a null terminator on the end since the execvp call needs a null terminator in the array */
 void split_string(char *input_string, char *string_array[]) {
     
+    /* Invalid arguments */
     if (input_string == NULL || string_array == NULL) {
         return;
     }
 
+    /* Iterate through the input string, adding elements to the array */
     int count = 0;
     char *token = strtok(input_string, " ");
     while (token != NULL && count < MAX_TOKENS - 1) {
         string_array[count] = token;
         count++;
-
         token = strtok(NULL, " ");
     }
 
